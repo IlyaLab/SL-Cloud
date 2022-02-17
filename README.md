@@ -56,4 +56,6 @@ To be able to see the data in the syntheticlethality dataset, please click on ht
 <img src="https://github.com/IlyaLab/SL-Cloud/blob/main/figures/add_sldataset.png" >
 
 ### Accessing ISB-CGC Resources
-To add ISB-CGC datasets, users need to follow the same steps with Accessing SL Resource, only difference is, they need to write isb-cgc-bq into Projectname box.
+To add ISB-CGC datasets, users need to follow the same steps with Accessing SL Resource, only difference is, they need to write isb-cgc-bq into Projectname box. 
+
+

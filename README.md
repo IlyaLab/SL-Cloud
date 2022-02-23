@@ -2,7 +2,9 @@
 
 This project provides a cloud-based data access platform coupled with software and well documented computational notebooks that re-implement published synthetic lethality (SL) inference algorithms to facilitate novel investigation into synthetic lethality. In addition  we provide general purpose functions that support these prediction workflows e.g. saving data in bigquery tables. We anticipate that computationally savvy users can leverage the resources provided in this project to conduct highly customizable analysis based on their cancer type of interest and particular context. 
 
-Please find our paper [here](https://www.biorxiv.org/content/10.1101/2021.09.18.459450v1).
+Open the framework in **MyBinder**: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/IlyaLab/SL-Cloud/HEAD)
+
+**Note**: for **MyBinder**, run the **MyBinder_Authentication.ipynb notebook** first!
 
 Citation: 
 Bahar Tercan, Guangrong Qin, Taek-Kyun Kim, Boris Aguilar, Christopher J. Kemp, Nyasha Chambwe, Ilya Shmulevich. SL-Cloud: A Computational Resource to Support Synthetic Lethal Interaction Discovery. BioRxiv 2021.09.18.459450; doi: https://doi.org/10.1101/2021.09.18.459450

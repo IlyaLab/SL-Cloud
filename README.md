@@ -9,7 +9,7 @@ Open the framework in **MyBinder**: [![Binder](https://mybinder.org/badge_logo.s
 Citation: 
 Bahar Tercan, Guangrong Qin, Taek-Kyun Kim, Boris Aguilar, Christopher J. Kemp, Nyasha Chambwe, Ilya Shmulevich. SL-Cloud: A Computational Resource to Support Synthetic Lethal Interaction Discovery. BioRxiv 2021.09.18.459450; doi: https://doi.org/10.1101/2021.09.18.459450
 
- If you have any questions, please reach out Bahar Tercan btercan@systemsbiology.org. 
+ If you have any questions, please reach out Bahar Tercan btercan@isbscience.org. 
 ## Getting Started
 
 ### Get a Google Identity

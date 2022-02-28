@@ -53,10 +53,4 @@ The following represent project-specific datasets with relevance for SL inferenc
 
 
 ### Accessing ISB-CGC Resources
-<<<<<<< HEAD
-To add ISB-CGC datasets, users need to follow the same steps with Accessing SL Resource, only difference is, they need to write isb-cgc-bq into Projectname box. 
-
-
-=======
 To be able to see the data in the ISB-CGC project, please click on https://console.cloud.google.com/bigquery and  add the syntheticlethality dataset, users need to pin the syntheticlethality project by first clicking "ADD DATA" and after selecting "Pin a project" and "Enter project name", you will see the window as in the Figure below. After writing isb-cgc-bq into Projectname box, please click on PIN. 
->>>>>>> ce03a02766615abb820654233563129531371899

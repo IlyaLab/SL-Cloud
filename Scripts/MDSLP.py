@@ -7,9 +7,14 @@ import numpy as np
 ## The GeneSymbol_standardization function will convert all non-standarized gene list to approved gene symbols.###
 def GeneSymbol_standardization(Gene_list,project_id):
     client = bigquery.Client(project_id)
+    #query='''
+    #    SELECT *
+    #    FROM  `syntheticlethality.gene_information.gene_info_human`
+    #    where Gene in UNNEST(@input_gene_list)
+    #    '''
     query='''
         SELECT *
-        FROM  `syntheticlethality.gene_information.gene_info_human`
+        FROM  `isb-cgc-bq.synthetic_lethality.gene_info_human_HGNC_NCBI_2020_07`
         where Gene in UNNEST(@input_gene_list)
         '''
     job_config = bigquery.QueryJobConfig(
@@ -23,12 +28,17 @@ def GeneSymbol_standardization(Gene_list,project_id):
     Gene_list_all = list(set(list(id_map['Alias'].values) + list(id_map['Gene'].values) ))
 
 
+    #query1 = ''' 
+    #            select Hugo_Symbol
+    #            from `syntheticlethality.DepMap_public_20Q3.CCLE_mutation`
+    #            where Hugo_Symbol in UNNEST(@input_gene_list_new)
+    #            '''
+    
     query1 = ''' 
                 select Hugo_Symbol
-                from `syntheticlethality.DepMap_public_20Q3.CCLE_mutation`
+                from `isb-cgc-bq.DEPMAP.CCLE_mutation_DepMapPublic_current`
                 where Hugo_Symbol in UNNEST(@input_gene_list_new)
                 '''
-
     job_config = bigquery.QueryJobConfig(
     query_parameters=[
             bigquery.ArrayQueryParameter("input_gene_list_new", "STRING", Gene_list_all)
@@ -56,9 +66,15 @@ def GeneSymbol_standardization(Gene_list,project_id):
 def GeneSymbol_standardization_output(Gene_list,project_id):
     Gene_list = list(set(Gene_list))
     client = bigquery.Client(project_id)
+    #query='''
+    #    SELECT *
+    #    FROM  `syntheticlethality.gene_information.gene_info_human`
+    #    where Gene in UNNEST(@input_gene_list)
+    #    '''
+
     query='''
         SELECT *
-        FROM  `syntheticlethality.gene_information.gene_info_human`
+        FROM  `isb-cgc-bq.synthetic_lethality.gene_info_human_HGNC_NCBI_2020_07`
         where Gene in UNNEST(@input_gene_list)
         '''
     job_config = bigquery.QueryJobConfig(
@@ -81,9 +97,13 @@ def GeneSymbol_standardization_output(Gene_list,project_id):
 ## Get sample information from the CCLE dataset; version (Depmap 20Q3). 
 def get_ccle_sample_info(project_id):
     client = bigquery.Client(project_id)
+    #query = ''' 
+    #        SELECT DepMap_ID, CCLE_Name,primary_disease,TCGA_subtype
+    #        FROM `syntheticlethality.DepMap_public_20Q3.sample_info_Depmap_withTCGA_labels` 
+    #        '''
     query = ''' 
             SELECT DepMap_ID, CCLE_Name,primary_disease,TCGA_subtype
-            FROM `syntheticlethality.DepMap_public_20Q3.sample_info_Depmap_withTCGA_labels` 
+            FROM `isb-cgc-bq.synthetic_lethality.sample_info_TCGAlabels_DepMapPublic_20Q3` 
             '''
     sample_info = client.query(query).result().to_dataframe()
     return(sample_info)
@@ -92,9 +112,14 @@ def get_ccle_sample_info(project_id):
 def get_ccle_mutation_data(project_id):
     client = bigquery.Client(project_id)    
     #Mutation matrix
+    #query = ''' 
+    #        select Hugo_Symbol,DepMap_ID,Variant_Classification 
+    #        from `syntheticlethality.DepMap_public_20Q3.CCLE_mutation`
+    #        '''
+    #Mut_mat = client.query(query).result().to_dataframe()
     query = ''' 
             select Hugo_Symbol,DepMap_ID,Variant_Classification 
-            from `syntheticlethality.DepMap_public_20Q3.CCLE_mutation`
+            from `isb-cgc-bq.DEPMAP.CCLE_mutation_DepMapPublic_current`
             '''
     Mut_mat = client.query(query).result().to_dataframe()
     return(Mut_mat)
@@ -170,6 +195,27 @@ def Mutational_based_SL_pipeline(tumor_type, mut_gene, Mut_mat, Depmap_matrix, d
     by either shRNA or CRISPR technology from DepMap (Dempster et al., 2019; Ghandi et al., 2019; McFarland et al., 2018; Meyers et al., 2017), 
     we integrated these data modalities to evaluate mutation-based conditional dependence. 
 
+    The MDSLP is based on genetic variants, gene-dependency scores, or gene effects from the cancer cell line data in the DepMap Portal. 
+    The genomic variants data from the CCLE project, gene-dependency scores estimated from CERES for CRISPR-Cas9 essentiality screening 
+    from project Achilles [32] and gene-dependency scores estimated from DEMETER2 from three large RNAi screening datasets  were used. 
+    We developed a pipeline that integrates the genetic information and the functional screening data to evaluate mutation-based conditional dependence, 
+    using either the CRISPR or the shRNA dataset. For this pipeline, tumor types can be selected by the users. The variants selected for this pipeline 
+    include those that alter the amino acid in the protein structures or protein expression which may further impact the function of the gene product. 
+    These alterations include Splice_Site, Frame_Shift_Del, Frame_Shift_Ins, Nonstop_Mutation, In_Frame_Del,  In_Frame_Ins, Missense_Mutation, 
+    Nonsense_Mutation, Nonstop_Mutation, Start_Codon_Del,  Start_Codon_Ins, Start_Codon_SNP, Stop_Codon_Del, Stop_Codon_Del, Stop_Codon_Ins, 
+    and De_novo_Start_OutOfFrame. 
+
+    For the CRISPR data-based pipeline, we used CCLE mutation, Achilles gene effect, and sample_info data from DepMap (version 20Q3).
+    After selecting tumor types, or the pan-cancer analysis option, for each selected mutated gene, we grouped the cell lines into 
+    either the mutated or the wild-type group, then tested whether the knockout effects or the gene dependency scores for the two groups
+    show statistically significant differences using a t-test, followed by Benjamini-Hochberg (BH) adjustment. Effect size (Cohen_dist function) was used to 
+    measure the  difference between the two groups. For each measurement, only the sample size for each group larger than five was considered. 
+
+    For the shRNA data-based pipeline, cancer cell line gene dependency scores derived from DEMETER2 (version 6) from a combined dataset of 
+    Achilles, DRIVE [45], and shRNA screen in breast cancer cell lines were used. The mutation data and sample annotation were for the DepMap 
+    20Q3 dataset. Significant differences are defined for gene pairs with BH-adjusted P value smaller than 0.05. 
+    Significant gene pairs with effect size (Cohen_dist function) smaller than 0 are predicted to be SLIs.
+
     Input:  
     tumor_type: A list of tumor types 
     mut_gene: The list of mutated genes
@@ -192,10 +238,15 @@ def Mutational_based_SL_pipeline(tumor_type, mut_gene, Mut_mat, Depmap_matrix, d
     
     #selection of cancer cell lines in certain tumor types  
     client = bigquery.Client(project_id)
+    #query = ''' 
+    #        SELECT DepMap_ID, primary_disease,TCGA_subtype
+    #        FROM `syntheticlethality.DepMap_public_20Q3.sample_info_Depmap_withTCGA_labels` 
+    #        '''
     query = ''' 
             SELECT DepMap_ID, primary_disease,TCGA_subtype
-            FROM `syntheticlethality.DepMap_public_20Q3.sample_info_Depmap_withTCGA_labels` 
+            FROM `isb-cgc-bq.synthetic_lethality.sample_info_TCGAlabels_DepMapPublic_20Q3` 
             '''
+
     sample_info = client.query(query).result().to_dataframe()
     
     pancancer_cls = (sample_info.loc[~sample_info['primary_disease'].isin(['Non-Cancerous','Unknown','Engineered','Immortalized'])]) #'Non-Cancerous','Unknown','Engineered','Immortalized' cell lines are excluded.
@@ -212,10 +263,15 @@ def Mutational_based_SL_pipeline(tumor_type, mut_gene, Mut_mat, Depmap_matrix, d
 
         
     #selection of cell lines with mutation data
+    #query = ''' 
+    #        select DepMap_ID from `syntheticlethality.DepMap_public_20Q3.CCLE_mutation`
+    #        group by DepMap_ID
+    #        '''
     query = ''' 
-            select DepMap_ID from `syntheticlethality.DepMap_public_20Q3.CCLE_mutation`
+            select DepMap_ID from `isb-cgc-bq.DEPMAP.CCLE_mutation_DepMapPublic_current`
             group by DepMap_ID
             '''
+
     samples_with_mut = client.query(query).result().to_dataframe()
     samples_with_mut = set(samples_with_mut['DepMap_ID'])
     
@@ -240,8 +296,12 @@ def Mutational_based_SL_pipeline(tumor_type, mut_gene, Mut_mat, Depmap_matrix, d
     #selection of cell lines with crispr or shRNA knockdown data
     samples_depmap_newname = []
     if datatype == "Crispr":
+        #query = ''' 
+        #        select DepMap_ID from `syntheticlethality.DepMap_public_20Q3.Achilles_gene_effect`
+        #        group by DepMap_ID
+        #        '''
         query = ''' 
-                select DepMap_ID from `syntheticlethality.DepMap_public_20Q3.Achilles_gene_effect`
+                select DepMap_ID from `isb-cgc-bq.DEPMAP.Achilles_gene_effect_DepMapPublic_current`
                 group by DepMap_ID
                 '''
         samples_depmap = client.query(query).result().to_dataframe()
@@ -250,8 +310,12 @@ def Mutational_based_SL_pipeline(tumor_type, mut_gene, Mut_mat, Depmap_matrix, d
             samples_depmap_newname.append(sample)
         
     elif datatype == "shRNA":
+        #query = ''' 
+        #        select CCLE_ID from `syntheticlethality.DEMETER2_v6.D2_combined_gene_dep_score`
+        #        group by CCLE_ID
+        #        '''
         query = ''' 
-                select CCLE_ID from `syntheticlethality.DEMETER2_v6.D2_combined_gene_dep_score`
+                select CCLE_ID from `isb-cgc-bq.DEPMAP.Combined_gene_dep_score_DEMETER2_current`
                 group by CCLE_ID
                 '''
         samples_depmap = client.query(query).result().to_dataframe()

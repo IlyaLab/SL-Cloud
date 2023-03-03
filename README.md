@@ -6,6 +6,7 @@ Open the framework in **MyBinder**: [![Binder](https://mybinder.org/badge_logo.s
 
 Citation: 
 Tercan, Bahar, et al. "SL-Cloud: A Cloud-based resource to support synthetic lethal interaction discovery." F1000Research 11 (2022): 493.
+https://f1000research.com/articles/11-493
 
  If you have any questions, please reach out Bahar Tercan btercan@isbscience.org. 
 ## Getting Started
